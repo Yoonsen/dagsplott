@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
+import { saveAs } from 'file-saver';
 
 const colorPalette = [
   'rgb(255, 99, 132)',    // red
@@ -15,17 +16,19 @@ const colorPalette = [
 
 export default function App() {
   const [word, setWord] = useState('sushi, pizza');
-  const [startDate, setStartDate] = useState('2020-01-01');
+  const [startDate, setStartDate] = useState('2016-01-01');
   const [endDate, setEndDate] = useState('2020-12-31');
   const [data, setData] = useState(null);
   const [rawGrouped, setRawGrouped] = useState(null);
   const [allDates, setAllDates] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [smooth, setSmooth] = useState(1);
+  const [smooth, setSmooth] = useState(8);
   const [cumulative, setCumulative] = useState(false);
     const [wordColorMap, setWordColorMap] = useState({});
-
-  const format = date => date.replace(/-/g, '');
+  
+    const chartRef = useRef(null); 
+  
+    const format = date => date.replace(/-/g, '');
 
   const [showDatePopup, setShowDatePopup] = useState(false);
     const [cohort, setCohort] = useState(false);
@@ -54,6 +57,42 @@ const assignColors = (words, existingMap) => {
 
   return newMap;
 };
+
+
+// Define the makeNbQuery function at the top or inside the component
+const makeNbQuery = (name, start_date, end_date) => {
+  return "https://www.nb.no/search?mediatype=aviser&" + new URLSearchParams({
+    q: name,
+    fromDate: start_date.replace(/-/g, ""),
+    toDate: end_date.replace(/-/g, "")
+  }).toString();
+};
+    
+const handleChartClick = (event, chart) => {
+  // Ensure the chart is available
+  if (chart) {
+    // Use the event to get the clicked elements
+    const activePoints = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true });
+
+    // If there's a valid active point (the user clicked on something)
+    if (activePoints.length > 0) {
+      const clickedElementIndex = activePoints[0].index;
+      const datasetIndex = activePoints[0].datasetIndex;
+
+      const clickedData = chart.data.datasets[datasetIndex].data[clickedElementIndex];  // Get the clicked data point
+      const label = chart.data.labels[clickedElementIndex]; // Get the corresponding label (e.g., the date)
+
+      // Now, create the query URL using the clicked word and date
+      const word = chart.data.datasets[datasetIndex].label;  // Get the word from the dataset
+      const searchUrl = makeNbQuery(word, label, label);  // Assuming `label` is the date, you can adjust as needed
+
+      // Open the URL in a new tab
+      window.open(searchUrl, '_blank');
+    }
+  }
+};
+
+
 
 const buildDatasets = (grouped, dates, cum, smoothing, cohortMode, colorMap) => {
   const wordEntries = Object.entries(grouped);
@@ -162,10 +201,49 @@ useEffect(() => {
     if (e.key === 'Enter') fetchData();
   };
 
+// PNG
+const downloadChartImage = () => {
+  if (chartRef.current) {
+    const chart = chartRef.current; // Access the chart object
+    const image = chart.toBase64Image(); // Generate the image as a Base64 string
+    const link = document.createElement('a');
+    link.href = image; // Set the href to the Base64 image data
+    link.download = 'chart.png'; // Set the download filename
+    link.click();  // Trigger the download
+  }
+};
+
+
+
+    
+// CSV
+const downloadCSV = () => {
+  const rows = [];
+  const labels = data.labels; // These should be your dates
+  const datasets = data.datasets;
+
+  // Add headers (labels)
+  rows.push(['Date', ...datasets.map(dataset => dataset.label)]);
+
+  // Add data rows
+  for (let i = 0; i < labels.length; i++) {
+    const row = [labels[i]];  // Add the date as the first column
+    datasets.forEach(dataset => row.push(dataset.data[i]));  // Add the corresponding count for each dataset
+    rows.push(row);
+  }
+
+  // Convert rows to CSV format
+  const csvContent = rows.map(row => row.join(',')).join('\n');
+
+  // Create a Blob from the CSV data
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  saveAs(blob, 'chart-data.csv');
+};
+    
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200 p-6 font-sans">
       <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-3xl px-8 py-10 space-y-8">
-        <h1 className="text-4xl font-bold text-center text-slate-800 tracking-tight">📰 Dagsplott</h1>
+        <h3 className="text-4xl font-bold text-center text-slate-300 tracking-tight">📰 Dagsplott</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div>
@@ -201,8 +279,8 @@ useEffect(() => {
               )}
             </div>
   <div className="pt-6">
-    <button className="bg-blue-600 text-white px-4 py-2 rounded" onClick={fetchData}>
-      🔍 Finn
+    <button className="bg-blue-300 text-white px-4 py-2 rounded" onClick={fetchData}>
+      🔍 Hent data
     </button>
   </div>
 
@@ -233,12 +311,29 @@ useEffect(() => {
 
 
         {loading && <p className="text-center text-blue-600">Loading...</p>}
-       {data && (
-  <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">
-    <Line data={data} />
-  </div>
-)}
-
+          {data && (
+          <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">
+            <Line 
+                ref={chartRef} 
+                data={data}   
+                  options={{
+                onClick: (event) => handleChartClick(event, chartRef.current), // Pass both event and chart instance
+              }} />
+          </div>
+        )}
+        
+        {/* Download Buttons */}
+        {data && (
+          <div className="flex justify-between pt-6">
+            <button onClick={downloadChartImage} className="text-slate px-4 py-2 rounded">
+              🖼️ Last ned graf (PNG)
+            </button>
+            <button onClick={downloadCSV} className="text-slate px-4 py-2 rounded">
+              📄 Last ned data (CSV)
+            </button>
+          </div>
+        )}
+          
       </div>
     </div>
   );
