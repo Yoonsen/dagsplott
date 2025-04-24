@@ -340,7 +340,13 @@ const downloadCSV = () => {
     {loading && <p className="text-center text-blue-600">Loading...</p>}
     {data && (
       <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">
-        <Line ref={chartRef} data={data} />
+        <Line 
+  ref={chartRef} 
+  data={data} 
+  options={{
+    onClick: (event) => handleChartClick(event, chartRef.current) // Ensure it's properly passed
+  }} 
+/>
       </div>
     )}
 

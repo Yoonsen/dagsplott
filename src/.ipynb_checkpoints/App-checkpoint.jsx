@@ -241,126 +241,128 @@ const downloadCSV = () => {
 };
     
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200 p-6 font-sans">
-      <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-3xl px-8 py-10 space-y-8">
-        <h3 className="text-4xl font-bold text-center text-slate-300 tracking-tight">📰 Dagsplott</h3>
+<div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200 p-6 font-sans">
+  <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-3xl px-8 py-10 space-y-8">
+    <h1 className="text-4xl font-bold text-center text-slate-800 tracking-tight">📰 Dagsplott</h1>
 
-<div className="flex justify-between items-center gap-6">
-  <div className="w-full">
-      {/* <label className="block text-sm font-medium text-slate-700 mb-1">Input</label>*/}
-    <input
-      className="w-full border border-slate-300 p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
-      value={word}
-      onChange={e => setWord(e.target.value)}
-      onKeyDown={handleKeyDown}
-      placeholder="pizza, sushi"
-    />
-  </div>
+    {/* First Row: Input and Fetch */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="w-full">
+        {/* <label className="block text-sm font-medium text-slate-700 mb-1">Input</label> */}
+        <input
+          className="w-full border border-slate-300 p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+          value={word}
+          onChange={e => setWord(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="pizza, sushi"
+        />
+      </div>
+      <div className="flex justify-center sm:justify-start">
+        <button
+          onClick={fetchData}
+          className="w-auto px-6 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-400 focus:outline-none"
+        >
+          🔍
+        </button>
+      </div>
+    </div>
 
- <div className="w-full sm:w-auto">
-    <button
-      className="w-auto bg-blue-300 text-white px-4 py-2 rounded"
-      onClick={fetchData}
-    >
-      🔍
-    </button>
+    {/* Second Row: Date (with Calendar), Cohort, Cumulative, Smoothing */}
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {/* Date Button (Calendar icon) */}
+      <div className="relative">
+        <button
+          onClick={() => setShowDatePopup(!showDatePopup)}
+          className="p-2 text-3xl text-slate-700 focus:outline-none"
+        >
+          📅
+        </button>
+
+        {showDatePopup && (
+          <div className="absolute z-10 bg-white border border-slate-300 rounded-md shadow-md mt-2 p-4 space-y-2 w-full">
+            <div>
+              <label className="block text-xs text-slate-600">Start</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                className="w-full border border-slate-300 p-2 rounded"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600">End</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                className="w-full border border-slate-300 p-2 rounded"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Kumulativ and Kohort checkboxes */}
+      <div className="flex items-center gap-3 pt-6">
+        <input
+          type="checkbox"
+          id="cumulative"
+          checked={cumulative}
+          onChange={e => setCumulative(e.target.checked)}
+        />
+        <label htmlFor="cumulative" className="text-slate-700">Kumulativ</label>
+
+        <input
+          type="checkbox"
+          id="cohort"
+          checked={cohort}
+          onChange={e => setCohort(e.target.checked)}
+        />
+        <label htmlFor="cohort" className="text-slate-700">Kohort</label>
+      </div>
+
+      {/* Smoothing controls */}
+      <div className="flex items-center gap-2 pt-6">
+        <label className="text-sm text-slate-700">Glatting</label>
+        <button
+          className="px-2 py-1 bg-slate-200 rounded text-sm"
+          onClick={() => setSmooth(s => Math.max(1, s - 1))}
+        >-</button>
+        <span className="w-8 text-center">{smooth}</span>
+        <button
+          className="px-2 py-1 bg-slate-200 rounded text-sm"
+          onClick={() => setSmooth(s => Math.min(31, s + 1))}
+        >+</button>
+      </div>
+    </div>
+
+    {/* Graph */}
+    {loading && <p className="text-center text-blue-600">Loading...</p>}
+    {data && (
+      <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">
+        <Line 
+  ref={chartRef} 
+  data={data} 
+  options={{
+    onClick: (event) => handleChartClick(event, chartRef.current) // Ensure it's properly passed
+  }} 
+/>
+      </div>
+    )}
+
+    {/* Download Buttons */}
+    {data && (
+      <div className="flex justify-between pt-6">
+        <button onClick={downloadChartImage} className="text-slate px-4 py-2 rounded">
+          🖼️ Last ned graf (PNG)
+        </button>
+        <button onClick={downloadCSV} className="text-slate px-4 py-2 rounded">
+          📄 Last ned data (CSV)
+        </button>
+      </div>
+    )}
   </div>
 </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
-        {/* Date Button (Calendar icon) */}
-        <div className="relative">
-            {/*<label className="block text-sm font-medium text-slate-700 mb-1">Periode</label>*/}
-<button
-  onClick={() => setShowDatePopup(!showDatePopup)}
-  className="p-2 text-3xl text-slate-700 focus:outline-none"
->
-  <span>📅</span>
-</button>
-
-          {showDatePopup && (
-            <div className="absolute z-10 bg-white border border-slate-300 rounded-md shadow-md mt-2 p-4 space-y-2 w-full">
-              <div>
-                <label className="block text-xs text-slate-600">Start</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={e => setStartDate(e.target.value)}
-                  className="w-full border border-slate-300 p-2 rounded"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-600">End</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={e => setEndDate(e.target.value)}
-                  className="w-full border border-slate-300 p-2 rounded"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Kumulativ and Kohort checkboxes */}
-        <div className="flex items-center gap-3 pt-6">
-          <input
-            type="checkbox"
-            id="cumulative"
-            checked={cumulative}
-            onChange={e => setCumulative(e.target.checked)}
-          />
-          <label htmlFor="cumulative" className="text-slate-700">Kumulativ</label>
-          
-          <input
-            type="checkbox"
-            id="cohort"
-            checked={cohort}
-            onChange={e => setCohort(e.target.checked)}
-          />
-          <label htmlFor="cohort" className="text-slate-700">Kohort</label>
-        </div>
-
-        {/* Smoothing controls */}
-        <div className="flex items-center gap-2 pt-6">
-          <label className="text-sm text-slate-700">Smoothing</label>
-          <button
-            className="px-2 py-1 bg-slate-200 rounded"
-            onClick={() => setSmooth(s => Math.max(1, s - 1))}
-          >-</button>
-          <span className="w-8 text-center">{smooth}</span>
-          <button
-            className="px-2 py-1 bg-slate-200 rounded"
-            onClick={() => setSmooth(s => Math.min(31, s + 1))}
-          >+</button>
-        </div>
-      </div>
-
-        {loading && <p className="text-center text-blue-600">Loading...</p>}
-          {data && (
-          <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">
-            <Line 
-                ref={chartRef} 
-                data={data}   
-                  options={{
-                onClick: (event) => handleChartClick(event, chartRef.current), // Pass both event and chart instance
-              }} />
-          </div>
-        )}
-        
-        {/* Download Buttons */}
-        {data && (
-          <div className="flex justify-between pt-6">
-            <button onClick={downloadChartImage} className="text-slate px-4 py-2 rounded">
-              🖼️ Last ned graf (PNG)
-            </button>
-            <button onClick={downloadCSV} className="text-slate px-4 py-2 rounded">
-              📄 Last ned data (CSV)
-            </button>
-          </div>
-        )}
-          
-      </div>
-    </div>
   );
 }
