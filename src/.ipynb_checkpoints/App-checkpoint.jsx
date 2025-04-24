@@ -169,7 +169,7 @@ useEffect(() => {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Words</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Input</label>
             <input
               className="w-full border border-slate-300 p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
               value={word}
@@ -179,7 +179,7 @@ useEffect(() => {
             />
           </div>
             <div className="relative">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Date range</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Periode</label>
               <button
                 onClick={() => setShowDatePopup(!showDatePopup)}
                 className="w-full border border-slate-300 p-3 rounded-md bg-white focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
@@ -190,11 +190,11 @@ useEffect(() => {
               {showDatePopup && (
                 <div className="absolute z-10 bg-white border border-slate-300 rounded-md shadow-md mt-2 p-4 space-y-2 w-full">
                   <div>
-                    <label className="block text-xs text-slate-600">Start</label>
+                    <label className="block text-xs text-slate-600">Fra</label>
                     <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full border border-slate-300 p-2 rounded" />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-600">End</label>
+                    <label className="block text-xs text-slate-600">Til</label>
                     <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full border border-slate-300 p-2 rounded" />
                   </div>
                 </div>
@@ -210,7 +210,7 @@ useEffect(() => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-slate-700">Smoothing</label>
+              <label className="text-sm text-slate-700">Glatting</label>
               <button
                 className="px-2 py-1 bg-slate-200 rounded"
                 onClick={() => setSmooth(s => Math.max(1, s - 1))}
@@ -224,9 +224,9 @@ useEffect(() => {
 
           <div className="flex items-end gap-3 pt-6">
             <input type="checkbox" id="cumulative" checked={cumulative} onChange={e => setCumulative(e.target.checked)} />
-            <label htmlFor="cumulative" className="text-slate-700">Cumulative</label>
+            <label htmlFor="cumulative" className="text-slate-700">Kumulativ</label>
               <input type="checkbox" id="cohort" checked={cohort} onChange={e => setCohort(e.target.checked)} />
-<label htmlFor="cohort">Cohort mode</label>
+<label htmlFor="cohort">Kohort</label>
           </div>
         </div>
 
