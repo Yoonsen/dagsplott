@@ -23,6 +23,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [smooth, setSmooth] = useState(1);
   const [cumulative, setCumulative] = useState(false);
+    const [wordColorMap, setWordColorMap] = useState({});
 
   const format = date => date.replace(/-/g, '');
 
@@ -39,84 +40,123 @@ export default function App() {
       return valid.reduce((sum, val) => sum + val, 0) / valid.length;
     });
   };
+    
+const assignColors = (words, existingMap) => {
+  const newMap = { ...existingMap };
+  let colorIndex = Object.keys(existingMap).length;
 
- const buildDatasets = (grouped, dates, cum, smoothing, cohortMode) => {
-  let allY = Object.entries(grouped).map(([_, counts]) => 
+  words.forEach(w => {
+    if (!newMap[w]) {
+      newMap[w] = colorPalette[colorIndex % colorPalette.length];
+      colorIndex++;
+    }
+  });
+
+  return newMap;
+};
+
+const buildDatasets = (grouped, dates, cum, smoothing, cohortMode, colorMap) => {
+  const wordEntries = Object.entries(grouped);
+
+  let allY = wordEntries.map(([_, counts]) =>
     dates.map(date => counts[date] || 0)
   );
 
   if (cohortMode) {
-    const totals = dates.map((_, i) => 
+    const totals = dates.map((_, i) =>
       allY.reduce((sum, series) => sum + series[i], 0)
     );
-    allY = allY.map(series => 
+    allY = allY.map(series =>
       series.map((val, i) => totals[i] ? val / totals[i] : 0)
     );
   } else if (cum) {
-    allY = allY.map(series => 
+    allY = allY.map(series =>
       series.reduce((acc, val, i) => [...acc, val + (acc[i - 1] || 0)], [])
     );
   }
 
   allY = allY.map(series => smoothArray(series, smoothing));
 
-  return Object.keys(grouped).map((w, idx) => ({
+  return wordEntries.map(([w], idx) => ({
     label: w,
     data: allY[idx],
     fill: false,
-    borderColor: colorPalette[idx % colorPalette.length],
+    borderColor: colorMap[w] || colorPalette[idx % colorPalette.length],
     tension: 0.1,
     pointRadius: 0
   }));
 };
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const words = word.split(',').map(w => w.trim()).filter(w => w);
 
-      const response = await fetch('https://api.nb.no/dhlab/ngram_newspapers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          period: [parseInt(format(startDate)), parseInt(format(endDate))],
-          word: words
-        })
-      });
+const fetchData = async () => {
+  setLoading(true);
+  try {
+      
+    const words = word.split(',').map(w => w.trim()).filter(w => w);
+    const format = date => date.replace(/-/g, '');
 
-      const json = await response.json();
+    const response = await fetch('https://api.nb.no/dhlab/ngram_newspapers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        period: [parseInt(format(startDate)), parseInt(format(endDate))],
+        word: words
+      })
+    });
 
-      const grouped = {};
-      Object.entries(json).forEach(([key, count]) => {
-        const [w, date] = key.split(' ');
-        if (!grouped[w]) grouped[w] = {};
-        grouped[w][date] = count;
-      });
+    const json = await response.json();
 
-      const dates = Object.values(grouped)[0] ? Object.keys(Object.values(grouped)[0]).sort() : [];
-      setRawGrouped(grouped);
-      setAllDates(dates);
-
-     const datasets = buildDatasets(grouped, dates, cumulative, smooth, cohort);
-
-      setData({ labels: dates, datasets });
-    } catch (e) {
-      console.error('Error fetching data:', e);
-    } finally {
-      setLoading(false);
+    // Generate all dates in range
+    const dateRange = [];
+    let curr = new Date(startDate);
+    const end = new Date(endDate);
+    while (curr <= end) {
+      const ymd = curr.toISOString().split('T')[0].replace(/-/g, '');
+      dateRange.push(ymd);
+      curr.setDate(curr.getDate() + 1);
     }
-  };
+
+    // Unpack and fill zeros
+    const grouped = {};
+    Object.entries(json).forEach(([key, count]) => {
+      const [w, date] = key.split(' ');
+      if (!grouped[w]) grouped[w] = {};
+      grouped[w][date] = count;
+    });
+
+    for (const w of words) {
+      if (!grouped[w]) grouped[w] = {};
+      dateRange.forEach(date => {
+        if (!(date in grouped[w])) grouped[w][date] = 0;
+      });
+    }
+
+    setRawGrouped(grouped);
+    setAllDates(dateRange);
+      
+    const newColorMap = assignColors(words, wordColorMap);
+    setWordColorMap(newColorMap);
+    const datasets = buildDatasets(grouped, dateRange, cumulative, smooth, cohort, words, newColorMap);
+
+    setData({ labels: dateRange, datasets });
+  } catch (e) {
+    console.error('Error fetching data:', e);
+  } finally {
+    setLoading(false);
+  }
+};
+
     
 
 useEffect(() => {
   if (rawGrouped && allDates.length) {
-    const datasets = buildDatasets(rawGrouped, allDates, cumulative, smooth, cohort);
+    const datasets = buildDatasets(rawGrouped, allDates, cumulative, smooth, cohort, wordColorMap);
     setData({ labels: allDates, datasets });
   }
-}, [cumulative, smooth, cohort]);
+}, [cumulative, smooth, cohort, wordColorMap]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') fetchData();
@@ -193,7 +233,12 @@ useEffect(() => {
 
 
         {loading && <p className="text-center text-blue-600">Loading...</p>}
-        {data && <div className="pt-4"><Line data={data} /></div>}
+       {data && (
+  <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">
+    <Line data={data} />
+  </div>
+)}
+
       </div>
     </div>
   );
