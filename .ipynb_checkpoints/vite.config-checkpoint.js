@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'robots.txt'],
       manifest: {
-        name: 'Daily Ngram Visualizer',
-        short_name: 'NgramPlot',
+        name: 'Dagsplott',
+        short_name: 'Dagsplott',
         description: 'Visualize word frequency trends in Norwegian newspapers',
         theme_color: '#ffffff',
         icons: [
