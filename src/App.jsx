@@ -294,11 +294,17 @@ const downloadCSV = () => {
     </button>
   </div>
         
-              {showDatePopup && (
-  <div 
-      
-      className="absolute right-0 mt-12 bg-white border border-slate-300 rounded-md shadow-md p-4 z-10">
-          
+ {showDatePopup && (
+  <div className="absolute right-10 mt-2 bg-white border border-slate-300 rounded-md shadow-md p-4 z-50 w-64">
+    <div className="flex justify-end">
+      <button
+        onClick={() => setShowDatePopup(false)}
+        className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+      >
+        ×
+      </button>
+    </div>
+    {/* Calendar inputs here */}
     <div className="mb-2">
       <label className="block text-xs text-slate-600">Start</label>
       <input
@@ -321,6 +327,7 @@ const downloadCSV = () => {
     </div>
   </div>
 )}
+
 
   {/* Group: Dropdown + Smoothing */}
   <div className="flex flex-wrap items-center gap-2 min-w-[240px]">
