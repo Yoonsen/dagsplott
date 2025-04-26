@@ -32,7 +32,8 @@ export default function App() {
 
   const [showDatePopup, setShowDatePopup] = useState(false);
     const [cohort, setCohort] = useState(false);
-    
+   const [mode, setMode] = useState('absolute');
+ 
   const smoothArray = (arr, k) => {
     if (k <= 1) return arr;
     return arr.map((_, i, a) => {
@@ -45,12 +46,26 @@ export default function App() {
   };
     
 const assignColors = (words, existingMap) => {
-  const newMap = { ...existingMap };
-  let colorIndex = Object.keys(existingMap).length;
+  // Lag et nytt map basert på gamle, men bare med ord som fortsatt finnes
+  const newMap = {};
+  const usedColors = new Set();
 
   words.forEach(w => {
+    if (existingMap[w]) {
+      newMap[w] = existingMap[w];
+      usedColors.add(existingMap[w]);
+    }
+  });
+
+  // Finn neste ledige farge
+  let colorIndex = 0;
+  words.forEach(w => {
     if (!newMap[w]) {
+      while (usedColors.has(colorPalette[colorIndex % colorPalette.length])) {
+        colorIndex++;
+      }
       newMap[w] = colorPalette[colorIndex % colorPalette.length];
+      usedColors.add(colorPalette[colorIndex % colorPalette.length]);
       colorIndex++;
     }
   });
@@ -94,21 +109,21 @@ const handleChartClick = (event, chart) => {
 
 
 
-const buildDatasets = (grouped, dates, cum, smoothing, cohortMode, colorMap) => {
+const buildDatasets = (grouped, dates, smoothing, mode, colorMap) => {
   const wordEntries = Object.entries(grouped);
 
   let allY = wordEntries.map(([_, counts]) =>
     dates.map(date => counts[date] || 0)
   );
 
-  if (cohortMode) {
+  if (mode === "cohort") {
     const totals = dates.map((_, i) =>
       allY.reduce((sum, series) => sum + series[i], 0)
     );
     allY = allY.map(series =>
       series.map((val, i) => totals[i] ? val / totals[i] : 0)
     );
-  } else if (cum) {
+  } else if (mode === "cumulative") {
     allY = allY.map(series =>
       series.reduce((acc, val, i) => [...acc, val + (acc[i - 1] || 0)], [])
     );
@@ -178,7 +193,7 @@ const fetchData = async () => {
       
     const newColorMap = assignColors(words, wordColorMap);
     setWordColorMap(newColorMap);
-    const datasets = buildDatasets(grouped, dateRange, cumulative, smooth, cohort, words, newColorMap);
+    const datasets = buildDatasets(grouped, dateRange, smooth, mode, newColorMap);
 
     setData({ labels: dateRange, datasets });
   } catch (e) {
@@ -192,10 +207,10 @@ const fetchData = async () => {
 
 useEffect(() => {
   if (rawGrouped && allDates.length) {
-    const datasets = buildDatasets(rawGrouped, allDates, cumulative, smooth, cohort, wordColorMap);
+    const datasets = buildDatasets(rawGrouped, allDates, smooth, mode, wordColorMap);
     setData({ labels: allDates, datasets });
   }
-}, [cumulative, smooth, cohort, wordColorMap]);
+}, [cumulative, smooth, mode, wordColorMap]);
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') fetchData();
@@ -246,80 +261,78 @@ const downloadCSV = () => {
     <h1 className="text-4xl font-bold text-center text-slate-800 tracking-tight">📰 Dagsplott</h1>
 
     {/* First Row: Input and Fetch */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-      <div className="w-full">
-        {/* <label className="block text-sm font-medium text-slate-700 mb-1">Input</label> */}
+<div className="relative w-full">
+  {/* Input felt */}
+  <input
+    className="w-full border border-slate-300 p-3 pl-10 pr-20 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+    value={word}
+    onChange={e => setWord(e.target.value)}
+    onKeyDown={handleKeyDown}
+    placeholder="pizza, sushi"
+  />
+  
+  {/* Søkeknapp */}
+  <button
+    onClick={fetchData}
+    className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xl text-slate-500 hover:text-slate-700 focus:outline-none"
+  >
+    🔍
+  </button>
+
+  {/* Kalenderknapp */}
+  <button
+    onClick={() => setShowDatePopup(!showDatePopup)}
+    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xl text-slate-500 hover:text-slate-700 focus:outline-none"
+  >
+    🗓
+  </button>
+
+  {/* Dato-popup */}
+  {showDatePopup && (
+    <div className="absolute right-0 mt-2 bg-white border border-slate-300 rounded-md shadow-md p-4 z-10">
+      <div className="mb-2">
+        <label className="block text-xs text-slate-600">Start</label>
         <input
-          className="w-full border border-slate-300 p-3 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
-          value={word}
-          onChange={e => setWord(e.target.value)}
+          type="date"
+          value={startDate}
+          onChange={e => setStartDate(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="pizza, sushi"
+          className="w-full border border-slate-300 p-2 rounded"
         />
       </div>
-      <div className="flex justify-center sm:justify-start">
-        <button
-          onClick={fetchData}
-          className="w-auto px-6 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-400 focus:outline-none"
-        >
-          🔍
-        </button>
+      <div>
+        <label className="block text-xs text-slate-600">Ende</label>
+        <input
+          type="date"
+          value={endDate}
+          onChange={e => setEndDate(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-full border border-slate-300 p-2 rounded"
+        />
       </div>
     </div>
+  )}
+</div>
+
 
     {/* Second Row: Date (with Calendar), Cohort, Cumulative, Smoothing */}
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-      {/* Date Button (Calendar icon) */}
-      <div className="relative">
-        <button
-          onClick={() => setShowDatePopup(!showDatePopup)}
-          className="p-2 text-3xl text-slate-700 focus:outline-none"
-        >
-          📅
-        </button>
 
-        {showDatePopup && (
-          <div className="absolute z-10 bg-white border border-slate-300 rounded-md shadow-md mt-2 p-4 space-y-2 w-full">
-            <div>
-              <label className="block text-xs text-slate-600">Start</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-                className="w-full border border-slate-300 p-2 rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-slate-600">End</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={e => setEndDate(e.target.value)}
-                className="w-full border border-slate-300 p-2 rounded"
-              />
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* Kumulativ and Kohort checkboxes */}
-      <div className="flex items-center gap-3 pt-6">
-        <input
-          type="checkbox"
-          id="cumulative"
-          checked={cumulative}
-          onChange={e => setCumulative(e.target.checked)}
-        />
-        <label htmlFor="cumulative" className="text-slate-700">Kumulativ</label>
+<div className="flex items-center gap-2 pt-6">
+  <label className="text-sm text-slate-700">Visning</label>
+  <select
+    value={mode}
+    onChange={e => setMode(e.target.value)}
+    className="border border-slate-300 rounded p-2"
+  >
+    <option value="absolute">Absolutt</option>
+    <option value="cumulative">Kumulativ</option>
+    <option value="cohort">Kohort</option>
+  </select>
+</div>
 
-        <input
-          type="checkbox"
-          id="cohort"
-          checked={cohort}
-          onChange={e => setCohort(e.target.checked)}
-        />
-        <label htmlFor="cohort" className="text-slate-700">Kohort</label>
-      </div>
 
       {/* Smoothing controls */}
       <div className="flex items-center gap-2 pt-6">
