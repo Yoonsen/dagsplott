@@ -316,38 +316,43 @@ const downloadCSV = () => {
 
 
     {/* Second Row: Date (with Calendar), Cohort, Cumulative, Smoothing */}
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-
-
-      {/* Kumulativ and Kohort checkboxes */}
-<div className="flex items-center gap-2 pt-6">
-  <label className="text-sm text-slate-700">Visning</label>
+<div className="flex flex-wrap gap-6 pt-6">
+  {/* Visning */}
+<div className="relative">
   <select
     value={mode}
     onChange={e => setMode(e.target.value)}
-    className="border border-slate-300 rounded p-2"
+    className="appearance-none border border-slate-200 rounded p-2 pr-8 bg-slate-100"
   >
     <option value="absolute">Absolutt</option>
     <option value="cumulative">Kumulativ</option>
     <option value="cohort">Kohort</option>
   </select>
+  <div className="pointer-events-none absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-500">
+    ▼
+  </div>
 </div>
 
 
-      {/* Smoothing controls */}
-      <div className="flex items-center gap-2 pt-6">
-        <label className="text-sm text-slate-700">Glatting</label>
-        <button
-          className="px-2 py-1 bg-slate-200 rounded text-sm"
-          onClick={() => setSmooth(s => Math.max(1, s - 1))}
-        >-</button>
-        <span className="w-8 text-center">{smooth}</span>
-        <button
-          className="px-2 py-1 bg-slate-200 rounded text-sm"
-          onClick={() => setSmooth(s => Math.min(31, s + 1))}
-        >+</button>
-      </div>
-    </div>
+  {/* Glatting */}
+<div className="flex items-center gap-1">
+  <label className="text-sm text-slate-700 mr-2">Glatte</label>
+  <div className="flex items-center border border-slate-300 rounded overflow-hidden">
+    <button
+      className="px-3 py-1 bg-slate-100 hover:bg-slate-300 text-sm"
+      onClick={() => setSmooth(s => Math.max(1, s - 1))}
+    >-</button>
+    <span className="px-3">{smooth}</span>
+    <button
+      className="px-3 py-1 bg-slate-100 hover:bg-slate-300 text-sm"
+      onClick={() => setSmooth(s => Math.min(31, s + 1))}
+    >+</button>
+  </div>
+</div>
+
+
+</div>
+
 
     {/* Graph */}
     {loading && <p className="text-center text-blue-600">Loading...</p>}
@@ -375,6 +380,9 @@ const downloadCSV = () => {
       </div>
     )}
   </div>
+    <p className="text-center text-xs text-slate-400 pt-6">
+  Dagsplott v1.0 © 2025
+</p>
 </div>
 
   );
