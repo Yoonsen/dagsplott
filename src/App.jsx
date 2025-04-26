@@ -257,8 +257,8 @@ const downloadCSV = () => {
     
   return (
 <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200 p-6 font-sans">
-  <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-3xl px-8 py-10 space-y-8">
-    <h1 className="text-4xl font-bold text-center text-slate-800 tracking-tight">📰 Dagsplott</h1>
+  <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-3xl px-4 py-6 space-y-2">
+    <h6 className="text-2xl font-semibold text-center text-slate-800 tracking-tight">📰 Dagsplott</h6>
 
     {/* First Row: Input and Fetch */}
 <div className="relative w-full">
@@ -316,7 +316,7 @@ const downloadCSV = () => {
 
 
     {/* Second Row: Date (with Calendar), Cohort, Cumulative, Smoothing */}
-<div className="flex flex-wrap gap-6 pt-6">
+<div className="flex flex-wrap gap-4 pt-4">
   {/* Visning */}
 <div className="relative">
   <select
@@ -357,8 +357,8 @@ const downloadCSV = () => {
     {/* Graph */}
     {loading && <p className="text-center text-blue-600">Loading...</p>}
     {data && (
-      <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">
-        <Line 
+      <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">        
+          <Line 
   ref={chartRef} 
   data={data} 
   options={{
