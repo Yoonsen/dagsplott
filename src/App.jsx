@@ -204,6 +204,7 @@ const fetchData = async () => {
   }
 };
 
+
     
 
 useEffect(() => {
@@ -292,6 +293,34 @@ const downloadCSV = () => {
       🗓
     </button>
   </div>
+        
+              {showDatePopup && (
+  <div 
+      
+      className="absolute right-0 mt-12 bg-white border border-slate-300 rounded-md shadow-md p-4 z-10">
+          
+    <div className="mb-2">
+      <label className="block text-xs text-slate-600">Start</label>
+      <input
+        type="date"
+        value={startDate}
+        onChange={e => setStartDate(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="w-full border border-slate-300 p-2 rounded"
+      />
+    </div>
+    <div>
+      <label className="block text-xs text-slate-600">Ende</label>
+      <input
+        type="date"
+        value={endDate}
+        onChange={e => setEndDate(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="w-full border border-slate-300 p-2 rounded"
+      />
+    </div>
+  </div>
+)}
 
   {/* Group: Dropdown + Smoothing */}
   <div className="flex flex-wrap items-center gap-2 min-w-[240px]">
