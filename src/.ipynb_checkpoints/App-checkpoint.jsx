@@ -325,6 +325,18 @@ const downloadCSV = () => {
         className="w-full border border-slate-300 p-2 rounded"
       />
     </div>
+      {/* OK Button */}
+<div className="flex justify-center mt-2">
+  <button
+    onClick={() => {
+      fetchData();
+      setShowDatePopup(false);
+    }}
+    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+  >
+    OK
+  </button>
+</div>
   </div>
 )}
 
