@@ -15,7 +15,7 @@ const colorPalette = [
 
 
 export default function App() {
-  const [word, setWord] = useState('akevitt, whisky, vodka,  cognac, konjakk');
+  const [word, setWord] = useState('renter, toll, tarr');
   const [startDate, setStartDate] = useState('2016-01-01');
   const [endDate, setEndDate] = useState('2020-12-31');
   const [data, setData] = useState(null);
@@ -25,7 +25,8 @@ export default function App() {
   const [smooth, setSmooth] = useState(8);
   const [cumulative, setCumulative] = useState(false);
     const [wordColorMap, setWordColorMap] = useState({});
-  
+  const [chartHeight, setChartHeight] = useState(400);  // Default høyde 400px
+
     const chartRef = useRef(null); 
   
     const format = date => date.replace(/-/g, '');
@@ -212,6 +213,10 @@ useEffect(() => {
   }
 }, [cumulative, smooth, mode, wordColorMap]);
 
+useEffect(() => {
+  fetchData();
+}, []);
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') fetchData();
   };
@@ -256,119 +261,114 @@ const downloadCSV = () => {
 };
     
   return (
-<div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-200 p-6 font-sans">
-  <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-3xl px-4 py-6 space-y-2">
+<div className="min-h-screen w-full bg-gradient-to-br from-slate-100 via-white to-slate-200 p-6 font-sans flex flex-col">
+  <div className="flex flex-col flex-grow bg-white shadow-xl rounded-3xl px-4 py-6 space-y-2">
+    
+    {/* Title */}
     <h6 className="text-2xl font-semibold text-center text-slate-800 tracking-tight">📰 Dagsplott</h6>
 
-    {/* First Row: Input and Fetch */}
-<div className="relative w-full">
-  {/* Input felt */}
-  <input
-    className="w-full border border-slate-300 p-3 pl-10 pr-20 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
-    value={word}
-    onChange={e => setWord(e.target.value)}
-    onKeyDown={handleKeyDown}
-    placeholder="pizza, sushi"
-  />
-  
-  {/* Søkeknapp */}
-  <button
-    onClick={fetchData}
-    className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xl text-slate-500 hover:text-slate-700 focus:outline-none"
-  >
-    🔍
-  </button>
+    {/* Input and controls */}
+    <div className="flex flex-wrap items-center gap-2 sm:gap-4 -mt-2">
 
-  {/* Kalenderknapp */}
-  <button
-    onClick={() => setShowDatePopup(!showDatePopup)}
-    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xl text-slate-500 hover:text-slate-700 focus:outline-none"
-  >
-    🗓
-  </button>
+  {/* Input field */}
+  <div className="relative flex-1 min-w-[200px] flex items-center">
+    <input
+      className="w-full border border-slate-300 p-2 pl-10 pr-20 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-sm"
+      value={word}
+      onChange={e => setWord(e.target.value)}
+      onKeyDown={handleKeyDown}
+      placeholder="renter, toll, tariff"
+    />
+    <button
+      onClick={fetchData}
+      className="absolute left-2 top-1/2 -translate-y-1/2 text-lg text-slate-500 hover:text-slate-700 focus:outline-none"
+    >
+      🔍
+    </button>
+    <button
+      onClick={() => setShowDatePopup(!showDatePopup)}
+      className="absolute right-2 top-1/2 -translate-y-1/2 text-lg text-slate-500 hover:text-slate-700 focus:outline-none"
+    >
+      🗓
+    </button>
+  </div>
 
-  {/* Dato-popup */}
-  {showDatePopup && (
-    <div className="absolute right-0 mt-2 bg-white border border-slate-300 rounded-md shadow-md p-4 z-10">
-      <div className="mb-2">
-        <label className="block text-xs text-slate-600">Start</label>
-        <input
-          type="date"
-          value={startDate}
-          onChange={e => setStartDate(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="w-full border border-slate-300 p-2 rounded"
-        />
-      </div>
-      <div>
-        <label className="block text-xs text-slate-600">Ende</label>
-        <input
-          type="date"
-          value={endDate}
-          onChange={e => setEndDate(e.target.value)}
-          onKeyDown={handleKeyDown}
-          className="w-full border border-slate-300 p-2 rounded"
-        />
+  {/* Group: Dropdown + Smoothing */}
+  <div className="flex flex-wrap items-center gap-2 min-w-[240px]">
+
+    {/* Dropdown */}
+    <div className="flex items-center">
+      <select
+        value={mode}
+        onChange={e => setMode(e.target.value)}
+        className="border border-slate-300 rounded p-2 bg-slate-100 text-sm"
+      >
+        <option value="absolute">Absolutt</option>
+        <option value="cumulative">Kumulativ</option>
+        <option value="cohort">Kohort</option>
+      </select>
+    </div>
+
+    {/* Smoothing */}
+    <div className="flex items-center">
+      <label className="text-sm text-slate-700 mr-2">Glatte</label>
+      <div className="flex items-center border border-slate-300 rounded overflow-hidden">
+        <button
+          className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-sm"
+          onClick={() => setSmooth(s => Math.max(1, s - 1))}
+        >-</button>
+        <span className="px-3 text-sm">{smooth}</span>
+        <button
+          className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-sm"
+          onClick={() => setSmooth(s => Math.min(31, s + 1))}
+        >+</button>
       </div>
     </div>
-  )}
-</div>
 
-
-    {/* Second Row: Date (with Calendar), Cohort, Cumulative, Smoothing */}
-<div className="flex flex-wrap gap-4 pt-4">
-  {/* Visning */}
-<div className="relative">
-  <select
-    value={mode}
-    onChange={e => setMode(e.target.value)}
-    className="appearance-none border border-slate-200 rounded p-2 pr-8 bg-slate-100"
-  >
-    <option value="absolute">Absolutt</option>
-    <option value="cumulative">Kumulativ</option>
-    <option value="cohort">Kohort</option>
-  </select>
-  <div className="pointer-events-none absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-500">
-    ▼
-  </div>
-</div>
-
-
-  {/* Glatting */}
-<div className="flex items-center gap-1">
-  <label className="text-sm text-slate-700 mr-2">Glatte</label>
-  <div className="flex items-center border border-slate-300 rounded overflow-hidden">
-    <button
-      className="px-3 py-1 bg-slate-100 hover:bg-slate-300 text-sm"
-      onClick={() => setSmooth(s => Math.max(1, s - 1))}
-    >-</button>
-    <span className="px-3">{smooth}</span>
-    <button
-      className="px-3 py-1 bg-slate-100 hover:bg-slate-300 text-sm"
-      onClick={() => setSmooth(s => Math.min(31, s + 1))}
-    >+</button>
-  </div>
-</div>
-
-
+  </div> {/* End Group */}
+  
 </div>
 
 
     {/* Graph */}
-    {loading && <p className="text-center text-blue-600">Loading...</p>}
-    {data && (
-      <div className="pt-4 max-h-[70vh] sm:max-h-[80vh] overflow-y-auto">        
-          <Line 
-  ref={chartRef} 
-  data={data} 
-  options={{
-    onClick: (event) => handleChartClick(event, chartRef.current) // Ensure it's properly passed
-  }} 
-/>
+    {loading && (
+      <div className="flex justify-center items-center flex-grow">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     )}
 
-    {/* Download Buttons */}
+    {data && (
+      <div className="w-full flex-grow min-h-[300px] max-h-[80vh] overflow-hidden flex items-center justify-center">
+        <Line
+          ref={chartRef}
+          data={data}
+          options={{
+            onClick: (event) => handleChartClick(event, chartRef.current),
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            responsive: true,
+            maintainAspectRatio: false
+          }}
+        />
+      </div>
+    )}
+
+    {/* Legend */}
+    {data && (
+      <div className="pt-4 flex flex-wrap justify-center gap-4">
+        {data.datasets.map((ds, idx) => (
+          <div key={ds.label} className="flex items-center space-x-2">
+            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: ds.borderColor }}></div>
+            <span className="text-xs text-slate-700">{ds.label}</span>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* Download buttons */}
     {data && (
       <div className="flex justify-between pt-6">
         <button onClick={downloadChartImage} className="text-slate px-4 py-2 rounded">
@@ -379,11 +379,16 @@ const downloadCSV = () => {
         </button>
       </div>
     )}
+
+
+
   </div>
-    <p className="text-center text-xs text-slate-400 pt-6">
-  Dagsplott v1.0 © 2025
-</p>
+        {/* Footer */}
+    <p className="text-center text-xs text-slate-400 pt-6">Dagsplott v1.0 © 2025</p>
 </div>
+
+
+
 
   );
 }
