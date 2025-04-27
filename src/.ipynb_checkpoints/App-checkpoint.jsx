@@ -16,8 +16,8 @@ const colorPalette = [
 
 export default function App() {
   const [word, setWord] = useState('pinnekjøtt, ribbe, akevitt, lammelår');
-  const [startDate, setStartDate] = useState('2016-01-01');
-  const [endDate, setEndDate] = useState('2020-12-31');
+  const [startDate, setStartDate] = useState('2018-01-01');
+  const [endDate, setEndDate] = useState('2024-12-31');
   const [data, setData] = useState(null);
   const [rawGrouped, setRawGrouped] = useState(null);
   const [allDates, setAllDates] = useState([]);
