@@ -15,9 +15,13 @@ const colorPalette = [
 
 
 export default function App() {
-  const [word, setWord] = useState('pinnekjøtt, ribbe, akevitt, lammelår');
-  const [startDate, setStartDate] = useState('2018-01-01');
-  const [endDate, setEndDate] = useState('2024-12-31');
+    const urlParams = new URLSearchParams(window.location.search);
+const initialWord = urlParams.get('word') || 'pinnekjøtt, ribbe, akevitt, lammelår';
+const initialStartDate = urlParams.get('startDate') || '2016-01-01';
+const initialEndDate = urlParams.get('endDate') || '2020-12-31';
+const [word, setWord] = useState(initialWord);
+const [startDate, setStartDate] = useState(initialStartDate);
+const [endDate, setEndDate] = useState(initialEndDate);
   const [data, setData] = useState(null);
   const [rawGrouped, setRawGrouped] = useState(null);
   const [allDates, setAllDates] = useState([]);
@@ -118,6 +122,22 @@ const darkenColor = (rgbStr, factor = 0.8) => {
   const [r, g, b] = rgbStr.match(/\d+/g).map(Number);
   return `rgb(${Math.floor(r * factor)}, ${Math.floor(g * factor)}, ${Math.floor(b * factor)})`;
 };
+    
+const generateShareableUrl = () => {
+  const baseUrl = "https://yoonsen.github.io/dagsplott";
+  const params = new URLSearchParams({
+    word: word,
+    start: startDate,
+    end: endDate
+  }).toString();
+  const fullUrl = `${baseUrl}?${params}`;
+  
+  navigator.clipboard.writeText(fullUrl).then(() => {
+    alert("🔗 Lenke kopiert!");
+  }).catch(err => {
+    console.error('Feil ved kopiering:', err);
+  });
+};
 
 
 const buildDatasets = (grouped, dates, smoothing, mode, colorMap) => {
@@ -152,13 +172,24 @@ return wordEntries.map(([w], idx) => ({
 }));
 };
 
+const generateAllDates = (start, end) => {
+  const dateRange = [];
+  let curr = new Date(start);
+  const endDate = new Date(end);
+  while (curr <= endDate) {
+    const ymd = curr.toISOString().split('T')[0].replace(/-/g, '');
+    dateRange.push(ymd);
+    curr.setDate(curr.getDate() + 1);
+  }
+  return dateRange;
+};
 
-const fetchData = async () => {
+const fetchData = async (customWord = word, customStartDate = startDate, customEndDate = endDate) => {
+
   setLoading(true);
   try {
-      
-    const words = word.split(',').map(w => w.trim()).filter(w => w);
-    
+    const words = customWord.split(',').map(w => w.trim()).filter(w => w);
+
     const response = await fetch('https://api.nb.no/dhlab/ngram_newspapers', {
       method: 'POST',
       headers: {
@@ -166,7 +197,7 @@ const fetchData = async () => {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        period: [parseInt(format(startDate)), parseInt(format(endDate))],
+        period: [parseInt(format(customStartDate)), parseInt(format(customEndDate))],
         word: words
       })
     });
@@ -174,14 +205,8 @@ const fetchData = async () => {
     const json = await response.json();
 
     // Generate all dates in range
-    const dateRange = [];
-    let curr = new Date(startDate);
-    const end = new Date(endDate);
-    while (curr <= end) {
-      const ymd = curr.toISOString().split('T')[0].replace(/-/g, '');
-      dateRange.push(ymd);
-      curr.setDate(curr.getDate() + 1);
-    }
+     const dateRange = generateAllDates(startDate, endDate); // <-- Bruk ny funksjon
+    setAllDates(dateRange);
 
     // Unpack and fill zeros
     const grouped = {};
@@ -212,16 +237,53 @@ const fetchData = async () => {
     setLoading(false);
   }
 };
-
-
     
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+
+  const initialWord = params.get('word');
+  const initialStartDate = params.get('startDate');
+  const initialEndDate = params.get('endDate');
+
+  if (initialWord) setWord(initialWord);
+  if (initialStartDate) setStartDate(initialStartDate);
+  if (initialEndDate) setEndDate(initialEndDate);
+
+  if (initialWord || initialStartDate || initialEndDate) {
+    setTimeout(() => {
+      fetchData(
+        initialWord || word,
+        initialStartDate || startDate,
+        initialEndDate || endDate
+      );
+    }, 100); 
+  } else {
+    fetchData(word, startDate, endDate);
+  }
+}, []);
+
+
+
+ useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+
+  const initialWord = params.get('word');
+  const initialStartDate = params.get('startDate');
+  const initialEndDate = params.get('endDate');
+
+  if (initialWord) setWord(initialWord);
+  if (initialStartDate) setStartDate(initialStartDate);
+  if (initialEndDate) setEndDate(initialEndDate);
+}, []);
+   
 
 useEffect(() => {
   if (rawGrouped && allDates.length) {
     const datasets = buildDatasets(rawGrouped, allDates, smooth, mode, wordColorMap);
     setData({ labels: allDates, datasets });
   }
-}, [cumulative, smooth, mode, wordColorMap]);
+}, [cumulative, smooth, mode, wordColorMap, startDate, endDate]);
+
 
 useEffect(() => {
   fetchData();
@@ -521,6 +583,11 @@ scales: {
         <button onClick={downloadChartImage} className="text-slate px-4 py-2 rounded">
           🖼️ Last ned graf (PNG)
         </button>
+          
+          <button onClick={generateShareableUrl} className="text-slate px-4 py-2 rounded">
+  🔗 Kopier URL
+</button>
+          
         <button onClick={downloadCSV} className="text-slate px-4 py-2 rounded">
           📄 Last ned data (CSV)
         </button>
