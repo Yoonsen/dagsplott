@@ -28,7 +28,7 @@ export default function App() {
   const [chartHeight, setChartHeight] = useState(400);  // Default høyde 400px
 
     const chartRef = useRef(null); 
-  
+  const [popup, setPopup] = useState(null); // { x, y, word, date }
     const format = date => date.replace(/-/g, '');
 
   const [showDatePopup, setShowDatePopup] = useState(false);
@@ -83,27 +83,33 @@ const makeNbQuery = (name, start_date, end_date) => {
     toDate: end_date.replace(/-/g, "")
   }).toString();
 };
+
+const buildSearchUrl = (word, start, end) => {
+  return "https://www.nb.no/search?mediatype=aviser&" + new URLSearchParams({
+    q: word,
+    fromDate: start,
+    toDate: end
+  }).toString();
+};
     
 const handleChartClick = (event, chart) => {
-  // Ensure the chart is available
   if (chart) {
-    // Use the event to get the clicked elements
-    const activePoints = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true });
+    const activePoints = chart.getElementsAtEventForMode(event.native, 'nearest', { intersect: true });
 
-    // If there's a valid active point (the user clicked on something)
     if (activePoints.length > 0) {
       const clickedElementIndex = activePoints[0].index;
       const datasetIndex = activePoints[0].datasetIndex;
+      const label = chart.data.labels[clickedElementIndex];
+      const word = chart.data.datasets[datasetIndex].label;
 
-      const clickedData = chart.data.datasets[datasetIndex].data[clickedElementIndex];  // Get the clicked data point
-      const label = chart.data.labels[clickedElementIndex]; // Get the corresponding label (e.g., the date)
-
-      // Now, create the query URL using the clicked word and date
-      const word = chart.data.datasets[datasetIndex].label;  // Get the word from the dataset
-      const searchUrl = makeNbQuery(word, label, label);  // Assuming `label` is the date, you can adjust as needed
-
-      // Open the URL in a new tab
-      window.open(searchUrl, '_blank');
+      setPopup({
+        x: event.native.offsetX,
+        y: event.native.offsetY,
+        word,
+        date: label
+      });
+    } else {
+      setPopup(null);
     }
   }
 };
@@ -148,8 +154,7 @@ const fetchData = async () => {
   try {
       
     const words = word.split(',').map(w => w.trim()).filter(w => w);
-    const format = date => date.replace(/-/g, '');
-
+    
     const response = await fetch('https://api.nb.no/dhlab/ngram_newspapers', {
       method: 'POST',
       headers: {
@@ -431,6 +436,53 @@ const downloadCSV = () => {
       </div>
     )}
 
+
+{popup && popup.x !== undefined && (
+  <div
+    className="absolute bg-white border border-slate-300 rounded-md shadow-md p-2 text-sm z-50"
+    style={{ left: popup.x, top: popup.y }}
+  >
+    <button
+      onClick={() => {
+        window.open(makeNbQuery(popup.word, popup.date, popup.date), '_blank');
+        setPopup(null);
+      }}
+      className="block w-full text-left hover:bg-slate-100 p-1"
+    >🔎 Søk på dag</button>
+
+    <button
+      onClick={() => {
+        const day = parseInt(popup.date, 10);
+        const weekStart = String(day - 3);
+        const weekEnd = String(day + 3);
+        window.open(makeNbQuery(popup.word, weekStart, weekEnd), '_blank');
+        setPopup(null);
+      }}
+      className="block w-full text-left hover:bg-slate-100 p-1"
+    >📅 Søk på uke</button>
+
+    <button
+      onClick={() => {
+        const month = popup.date.slice(0,6); // yyyyMM
+        const start = month + "01";
+        const end = month + "31";
+        window.open(makeNbQuery(popup.word, start, end), '_blank');
+        setPopup(null);
+      }}
+      className="block w-full text-left hover:bg-slate-100 p-1"
+    >🗓 Søk på måned</button>
+
+    <button
+      onClick={() => {
+        window.open(makeNbQuery(popup.word, format(startDate), format(endDate)), '_blank');
+        setPopup(null);
+      }}
+      className="block w-full text-left hover:bg-slate-100 p-1"
+    >🌍 Søk hele perioden</button>
+  </div>
+)}
+
+      
     {/* Legend */}
     {data && (
       <div className="pt-4 flex flex-wrap justify-center gap-4">
