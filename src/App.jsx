@@ -15,7 +15,7 @@ const colorPalette = [
 
 
 export default function App() {
-  const [word, setWord] = useState('renter, toll, tarr');
+  const [word, setWord] = useState('pinnekjøtt, ribbe, akevitt, lammelår');
   const [startDate, setStartDate] = useState('2016-01-01');
   const [endDate, setEndDate] = useState('2020-12-31');
   const [data, setData] = useState(null);
