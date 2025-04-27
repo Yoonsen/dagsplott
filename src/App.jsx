@@ -438,7 +438,7 @@ const downloadCSV = () => {
 
 
 {popup && popup.x !== undefined && (
- <div className="absolute bg-white border border-slate-300 rounded-xl shadow-lg p-2 text-sm z-50 space-y-1" style={{ left: popup.x, top: popup.y }}>
+ <div className="absolute bg-white border border-gray-200 rounded-2xl shadow-2xl p-2 text-sm z-50 space-y-1" style={{ left: popup.x, top: popup.y }}>
   <p className="text-lg font-bold text-slate-700">{popup.word}</p>
     <button
       onClick={() => {
