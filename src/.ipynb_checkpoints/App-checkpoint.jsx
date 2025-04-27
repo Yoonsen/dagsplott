@@ -127,18 +127,21 @@ const generateShareableUrl = () => {
   const baseUrl = "https://yoonsen.github.io/dagsplott";
   const params = new URLSearchParams({
     word: word,
-    start: startDate,
-    end: endDate
+    startDate: startDate,
+    endDate: endDate
   }).toString();
   const fullUrl = `${baseUrl}?${params}`;
   
-  navigator.clipboard.writeText(fullUrl).then(() => {
-    alert("🔗 Lenke kopiert!");
-  }).catch(err => {
-    console.error('Feil ved kopiering:', err);
-  });
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      alert("🔗 Lenke kopiert!");
+    }).catch(() => {
+      alert(`🔗 Her er lenken:\n\n${fullUrl}`);
+    });
+  } else {
+    alert(`🔗 Her er lenken:\n\n${fullUrl}`);
+  }
 };
-
 
 const buildDatasets = (grouped, dates, smoothing, mode, colorMap) => {
   const wordEntries = Object.entries(grouped);
