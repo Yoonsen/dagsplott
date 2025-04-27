@@ -418,16 +418,34 @@ const downloadCSV = () => {
       }
     }
   },
-  scales: {
-    x: {
-      ticks: {
-        callback: function(value) {
-          const dateStr = this.getLabelForValue(value);
-          return formatDate(dateStr);
+scales: {
+  x: {
+    ticks: {
+      callback: function(value, index, ticks) {
+        const dateStr = this.getLabelForValue(value);
+        return formatDate(dateStr); // Kun returnere tekst
+      },
+      color: function(context) {
+        const value = context.tick.value; // Verdien på x-aksen
+        const dateStr = context.chart.data.labels[value]; // hent datoen
+
+        const month = parseInt(dateStr.slice(4, 6)); // måned
+
+        if ([11, 12, 1, 2, 3].includes(month)) {
+          return '#38bdf8'; // vinter (lys blå)
+        } else if ([ 4, 5].includes(month)) {
+          return '#22c55e'; // vår (grønn)
+        } else if ([6, 7, 8].includes(month)) {
+          return '#f59e0b'; // sommer (oransje)
+        } else if ([9, 10].includes(month)) {
+          return '#f43f5e'; // høst (rød)
         }
+        return '#64748b'; // fallback
       }
     }
-  },
+  }
+}
+,
   responsive: true,
   maintainAspectRatio: false,
 }}
