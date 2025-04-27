@@ -1,12 +1,55 @@
-# React + Vite
+# 📰 Dagsplott
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Dagsplott** er en lettvekts webapp for å visualisere ordbruk over tid i norske aviser.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Hva kan Dagsplott gjøre?
 
-## Expanding the ESLint configuration
+- 📅 Velg periode (fra og til-dato)
+- 🔍 Søk på ett eller flere ord
+- 📈 Se utviklingen dag for dag
+- 🧹 Juster glatting for å få jevnere kurver
+- 🧮 Velg visning: Absolutt, Kumulativ eller Kohort
+- 🖼️ Last ned grafen som PNG
+- 📄 Last ned data som CSV
+- 📱 Tilpasser seg mobil og desktop
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## 🛠️ Teknologi
+
+- **Vite** + **React** + **Tailwind CSS**
+- **PWA** (Progressive Web App) klar for installasjon
+- **Chart.js** for graftegning
+- **FileSaver** for nedlasting av bilder og data
+
+---
+
+## 📦 Hvordan komme i gang
+
+```bash
+npm install
+npm run dev
+```
+
+For å bygge og deploye til GitHub Pages:
+
+```bash
+npm run deploy
+```
+
+---
+
+## 🌍 Live versjon
+
+👉 [Se Dagsplott her!](https://yoonsen.github.io/dagsplott/)
+
+---
+
+## 📜 Lisens
+
+MIT License.  
+Laget med ❤️ for språk, data og visualisering!
+
+---
