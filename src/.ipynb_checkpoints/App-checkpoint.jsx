@@ -235,6 +235,14 @@ const downloadChartImage = () => {
 };
 
 
+const formatDate = (dateStr) => {
+  const year = dateStr.slice(0, 4);
+  const month = dateStr.slice(4, 6);
+  const day = dateStr.slice(6, 8);
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mai", "Jun", 
+                  "Jul", "Aug", "Sep", "Okt", "Nov", "Des"];
+  return `${day}-${months[parseInt(month) - 1]}-${year}`;
+};
 
     
 // CSV
@@ -390,16 +398,35 @@ const downloadCSV = () => {
         <Line
           ref={chartRef}
           data={data}
-          options={{
-            onClick: (event) => handleChartClick(event, chartRef.current),
-            plugins: {
-              legend: {
-                display: false
-              }
-            },
-            responsive: true,
-            maintainAspectRatio: false
-          }}
+ options={{
+  onClick: (event) => handleChartClick(event, chartRef.current),
+  plugins: {
+    legend: {
+      display: false,
+    },
+    tooltip: {
+      callbacks: {
+        title: (tooltipItems) => {
+          const dateStr = tooltipItems[0].label;
+          return formatDate(dateStr);
+        }
+      }
+    }
+  },
+  scales: {
+    x: {
+      ticks: {
+        callback: function(value) {
+          const dateStr = this.getLabelForValue(value);
+          return formatDate(dateStr);
+        }
+      }
+    }
+  },
+  responsive: true,
+  maintainAspectRatio: false,
+}}
+
         />
       </div>
     )}
