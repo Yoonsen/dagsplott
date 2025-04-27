@@ -114,6 +114,10 @@ const handleChartClick = (event, chart) => {
   }
 };
 
+const darkenColor = (rgbStr, factor = 0.8) => {
+  const [r, g, b] = rgbStr.match(/\d+/g).map(Number);
+  return `rgb(${Math.floor(r * factor)}, ${Math.floor(g * factor)}, ${Math.floor(b * factor)})`;
+};
 
 
 const buildDatasets = (grouped, dates, smoothing, mode, colorMap) => {
@@ -138,14 +142,14 @@ const buildDatasets = (grouped, dates, smoothing, mode, colorMap) => {
 
   allY = allY.map(series => smoothArray(series, smoothing));
 
-  return wordEntries.map(([w], idx) => ({
-    label: w,
-    data: allY[idx],
-    fill: false,
-    borderColor: colorMap[w] || colorPalette[idx % colorPalette.length],
-    tension: 0.1,
-    pointRadius: 0
-  }));
+return wordEntries.map(([w], idx) => ({
+  label: w,
+  data: allY[idx],
+  fill: false,
+  borderColor: darkenColor(colorMap[w] || colorPalette[idx % colorPalette.length], 0.9),
+  tension: 0.1,
+  pointRadius: 0
+}));
 };
 
 
