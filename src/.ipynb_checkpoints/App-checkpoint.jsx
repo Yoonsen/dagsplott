@@ -372,7 +372,7 @@ const downloadCSV = () => {
       onClick={() => setShowDatePopup(!showDatePopup)}
       className="absolute right-2 top-1/2 -translate-y-1/2 text-lg text-slate-500 hover:text-slate-700 focus:outline-none"
     >
-      🗓
+    &#128197;
     </button>
   </div>
         
@@ -544,7 +544,7 @@ scales: {
         setPopup(null);
       }}
       className="block w-full text-left hover:bg-slate-100 p-1"
-    >📅 Søk på uke</button>
+    >🗓 Søk på uke</button>
 
     <button
       onClick={() => {
@@ -555,7 +555,7 @@ scales: {
         setPopup(null);
       }}
       className="block w-full text-left hover:bg-slate-100 p-1"
-    >🗓 Søk på måned</button>
+    >📅 Søk på måned</button>
 
     <button
       onClick={() => {
@@ -588,7 +588,7 @@ scales: {
         </button>
           
           <button onClick={generateShareableUrl} className="text-slate px-4 py-2 rounded">
-  🔗 Kopier URL
+  🔗 Kopier link til grafen
 </button>
           
         <button onClick={downloadCSV} className="text-slate px-4 py-2 rounded">
